@@ -49,9 +49,6 @@ describe('full context operations [builtInMethods]', () => {
     expect(() => {
       ctxChild.bro = 'modified'
     }).toThrow(NCTX_ERR_INVALID_SETTER)
-    expect(() => {
-      ctxChild.bro.name = 'modified'
-    }).toThrow(NCTX_ERR_INVALID_SETTER)
   })
 
   test('state', () => {

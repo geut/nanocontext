@@ -12,14 +12,14 @@ const kSnapshot = Symbol('nanocontext.snapshot')
 const kState = Symbol('nanocontext.state')
 const kSetState = Symbol('nanocontext.setstate')
 
-const objectFreeze = (obj, parent) => {
-  if (typeof obj !== 'object') {
+const deepFreeze = (obj, parent) => {
+  if (!obj || typeof obj !== 'object') {
     return obj
   }
 
   return new Proxy(obj, {
     get (_, prop) {
-      return objectFreeze(Reflect.get(...arguments), `${parent}.${prop.toString()}`)
+      return deepFreeze(Reflect.get(...arguments), `${parent}.${prop.toString()}`)
     },
     set (_, prop) {
       throw new NCTX_ERR_INVALID_SETTER(`${parent}.${prop.toString()}`)
@@ -37,11 +37,12 @@ class Nanocontext {
     this.builtInMethods = builtInMethods
     this.onstatechange = onstatechange
     this.decorators = new Map()
-    this.state = objectFreeze({}, 'state')
+    this.state = deepFreeze({}, 'state')
 
     this.decorate = this.decorate.bind(this)
     this.snapshot = this.snapshot.bind(this)
     this.setState = this.setState.bind(this)
+    this.publicMethods = ['root', 'parent', 'state', 'decorate', 'snapshot', 'setState']
 
     this.target = new Proxy(ctx, this)
 
@@ -69,15 +70,8 @@ class Nanocontext {
       case kSetState: return Reflect.get(this, 'setState')
     }
 
-    if (this.builtInMethods) {
-      switch (prop) {
-        case 'root': return Reflect.get(this, 'root')
-        case 'parent': return Reflect.get(this, 'parent')
-        case 'decorate': return Reflect.get(this, 'decorate')
-        case 'snapshot': return Reflect.get(this, 'snapshot')
-        case 'state': return Reflect.get(this, 'state')
-        case 'setState': return Reflect.get(this, 'setState')
-      }
+    if (this.builtInMethods && this.publicMethods.includes(prop)) {
+      return Reflect.get(this, prop)
     }
 
     return Reflect.get(...arguments)
@@ -85,7 +79,7 @@ class Nanocontext {
 
   set (_, prop) {
     if (this.decorators.has(prop)) {
-      throw new NCTX_ERR_INVALID_SETTER(`ctx.${prop}`)
+      throw new NCTX_ERR_INVALID_SETTER(`decorator.${prop}`)
     }
 
     return Reflect.set(...arguments)
@@ -100,15 +94,11 @@ class Nanocontext {
       decorator.bind(this.target)
     }
 
-    if (typeof decorator === 'object') {
-      decorator = objectFreeze(decorator, `ctx.${name}`)
-    }
-
     this.decorators.set(name, decorator)
   }
 
   setState (state, reason) {
-    this.state = objectFreeze(Object.assign({}, this.state, state), 'state')
+    this.state = deepFreeze(Object.assign({}, this.state, state), 'state')
     this.onstatechange(this.state, reason)
     return this.state
   }
