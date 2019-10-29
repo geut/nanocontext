@@ -1,0 +1,58 @@
+{
+  "name": "@geut/nanocontext",
+  "version": "1.0.0",
+  "description": "Template to create modules following the Geut path",
+  "main": "index.js",
+  "files": [
+    "lib",
+    "bin",
+    "index.js"
+  ],
+  "scripts": {
+    "start": "node index.js",
+    "test": "jest --passWithNoTests",
+    "posttest": "npm run lint",
+    "lint": "xd-ns \"**/*.js\"",
+    "version": "chan release ${npm_package_version} && git add .",
+    "prepublishOnly": "npm test"
+  },
+  "dependencies": {
+    "quick-format-unescaped": "^3.0.3"
+  },
+  "devDependencies": {
+    "@geut/chan": "^2.0.0",
+    "@geut/xd": "^1.5.0",
+    "standard": "^14.3.1",
+    "jest": "^24.8.0"
+  },
+  "jest": {
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ]
+  },
+  "standard": {
+    "env": [
+      "jest",
+      "node",
+      "browser"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/geut/nanocontext.git"
+  },
+  "keywords": [
+    "create",
+    "geut",
+    "module"
+  ],
+  "author": {
+    "name": "GEUT",
+    "email": "contact@geutstudio.com"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/geut/nanocontext/issues"
+  },
+  "homepage": "https://github.com/geut/nanocontext#readme"
+}
