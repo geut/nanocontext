@@ -31,7 +31,7 @@ class Nanocontext {
   constructor (ctx, opts = {}) {
     if (typeof ctx !== 'object') throw new NCTX_ERR_INVALID_CONTEXT_ARGUMENT(ctx)
 
-    const { onstatechange = () => {}, builtInMethods = true, freeze = false } = opts
+    const { onstatechange = () => {}, builtInMethods = true, freeze = true } = opts
 
     this.opts = opts
     this.onstatechange = onstatechange
@@ -75,7 +75,13 @@ class Nanocontext {
       return Reflect.get(this, prop)
     }
 
-    return Reflect.get(...arguments)
+    const getter = Reflect.get(...arguments)
+
+    if (this.freeze && this.parent) {
+      return deepFreeze(getter, `ctx.${prop.toString()}`)
+    }
+
+    return getter
   }
 
   set (_, prop) {
@@ -83,8 +89,9 @@ class Nanocontext {
       throw new NCTX_ERR_INVALID_SETTER(`decorator.${prop}`)
     }
 
-    if (this.freeze) {
-      throw new NCTX_ERR_INVALID_SETTER(`ctx.${prop}`)
+    // Only the root can modify the ctx directly.
+    if (this.freeze && this.parent) {
+      throw new NCTX_ERR_INVALID_SETTER(`ctx.${prop.toString()}`)
     }
 
     return Reflect.set(...arguments)

@@ -16,7 +16,7 @@ describe('full context operations [builtInMethods]', () => {
     expect(ctxRoot.root).toBe(ctxRoot)
   })
 
-  test('snapshot, ctxChild creatio from ctxRoot', () => {
+  test('snapshot, ctxChild creation from ctxRoot', () => {
     ctxChild = ctxRoot.snapshot()
     expect(ctxChild).toEqual(ctx)
     expect(ctxChild.name).toBe('alice')
@@ -62,6 +62,23 @@ describe('full context operations [builtInMethods]', () => {
     }).toThrow(NCTX_ERR_INVALID_SETTER)
     expect(() => {
       ctxRoot.state.bro.name = 'modified'
+    }).toThrow(NCTX_ERR_INVALID_SETTER)
+  })
+
+  test('access [freeze=true]', () => {
+    const human = { name: 'bob', change () { this.name = 'change' } }
+    ctxRoot.human = human
+    ctxRoot.human.change()
+    ctxRoot.human.name = 'alice'
+    expect(ctxRoot.human).toEqual(human)
+    expect(() => {
+      ctxChild.human = 'modified2'
+    }).toThrow(NCTX_ERR_INVALID_SETTER)
+    expect(() => {
+      ctxChild.human.change()
+    }).toThrow(NCTX_ERR_INVALID_SETTER)
+    expect(() => {
+      ctxChild.human.name = 'modified2'
     }).toThrow(NCTX_ERR_INVALID_SETTER)
   })
 })
