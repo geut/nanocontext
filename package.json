@@ -1,11 +1,10 @@
 {
   "name": "@geut/nanocontext",
   "version": "1.0.0",
-  "description": "Template to create modules following the Geut path",
+  "description": "Small module to create a context tree object to extend through decorators.",
   "main": "index.js",
   "files": [
-    "lib",
-    "bin",
+    "errors.js",
     "index.js"
   ],
   "scripts": {
@@ -13,7 +12,7 @@
     "test": "jest --passWithNoTests",
     "posttest": "npm run lint",
     "lint": "xd-ns \"**/*.js\"",
-    "version": "chan release ${npm_package_version} && git add .",
+    "version": "chan release --allow-yanked ${npm_package_version} && git add .",
     "prepublishOnly": "npm test"
   },
   "dependencies": {
@@ -42,9 +41,9 @@
     "url": "git+https://github.com/geut/nanocontext.git"
   },
   "keywords": [
-    "create",
     "geut",
-    "module"
+    "module",
+    "context"
   ],
   "author": {
     "name": "GEUT",
