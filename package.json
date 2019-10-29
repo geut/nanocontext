@@ -1,5 +1,5 @@
 {
-  "name": "@geut/nanocontext",
+  "name": "nanocontext",
   "version": "1.0.0",
   "description": "Small module to create a context tree object to extend through decorators.",
   "main": "index.js",
