@@ -53,5 +53,8 @@
   "bugs": {
     "url": "https://github.com/geut/nanocontext/issues"
   },
-  "homepage": "https://github.com/geut/nanocontext#readme"
+  "homepage": "https://github.com/geut/nanocontext#readme",
+  "publishConfig": {
+    "access": "public"
+  }
 }
