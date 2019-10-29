@@ -21,7 +21,7 @@ $ npm install nanocontext
 
 ## <a name="usage"></a> Usage
 
-```
+```javascript
 const nanocontext = require('nanocontext')
 
 const ctxRoot = nanocontext({ name: 'alice' })
