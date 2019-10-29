@@ -25,15 +25,19 @@ $ npm install nanocontext
 const nanocontext = require('nanocontext')
 
 const ctxRoot = nanocontext({ name: 'alice' })
+
 ctxRoot.decorate('hello', () => 'hello from root')
 
 console.log(ctxRoot.hello()) // hello from root
 
 const ctxChild = ctxRoot.snapshot()
+
 console.log(ctxChild.hello()) // hello from root (by inheritance)
+
 ctxChild.decorate('hello', () => 'hello from child')
 
 console.log(ctxRoot.hello()) // hello from root (it doesn't change)
+
 console.log(ctxChild.hello()) // hello from child
 ```
 
