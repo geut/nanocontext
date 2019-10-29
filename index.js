@@ -1,7 +1,8 @@
 const {
   NCTX_ERR_INVALID_SETTER,
   NCTX_ERR_INVALID_CONTEXT_ARGUMENT,
-  NCTX_ERR_DEC_ALREADY_PRESENT
+  NCTX_ERR_DEC_ALREADY_PRESENT,
+  NCTX_ERR_INVALID_STATE
 } = require('./errors')
 
 const kIsNanocontext = Symbol('nanocontext.isnanocontext')
@@ -31,14 +32,14 @@ class Nanocontext {
   constructor (ctx, opts = {}) {
     if (typeof ctx !== 'object') throw new NCTX_ERR_INVALID_CONTEXT_ARGUMENT(ctx)
 
-    const { onstatechange = () => {}, builtInMethods = true, freeze = true } = opts
+    const { onstatechange = () => {}, builtInMethods = true, freeze = true, state = {} } = opts
 
     this.opts = opts
     this.onstatechange = onstatechange
     this.builtInMethods = builtInMethods
     this.freeze = freeze
+    this.state = typeof state === 'object' ? deepFreeze(state, 'state') : new NCTX_ERR_INVALID_STATE(state)
     this.decorators = new Map()
-    this.state = deepFreeze({}, 'state')
 
     this.decorate = this.decorate.bind(this)
     this.snapshot = this.snapshot.bind(this)
@@ -107,9 +108,12 @@ class Nanocontext {
     }
 
     this.decorators.set(name, decorator)
+
+    return this
   }
 
   setState (state, reason) {
+    if (typeof state !== 'object') throw new NCTX_ERR_INVALID_STATE(state)
     this.state = deepFreeze(Object.assign({}, this.state, state), 'state')
     this.onstatechange(this.state, reason)
     return this.state
