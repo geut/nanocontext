@@ -91,7 +91,7 @@ class Nanocontext {
     }
 
     // Only the root can modify the ctx directly.
-    if (this.freeze && this.parent) {
+    if ((this.freeze && this.parent) || (this.builtInMethods && this.publicMethods.includes(prop))) {
       throw new NCTX_ERR_INVALID_SETTER(`ctx.${prop.toString()}`)
     }
 
@@ -137,3 +137,5 @@ nanocontext.getState = ctx => ctx[kState]
 nanocontext.setState = (ctx, state, reason) => ctx[kSetState](state, reason)
 
 module.exports = nanocontext
+
+const ctx = nanocontext({})
