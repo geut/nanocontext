@@ -50,7 +50,7 @@ It creates a new nanocontext instance based on an initial object.
 Options can be:
 
 - `builtInMethods = true`: Defines a set of built-in methods to work with the context. You can disabled and access to these methods from generic functions.
-- `onstatechange`: Execute a function when the state of a context change.
+- `onstatechange = (state) => {}`: Execute a function when the state of a context change.
 - `freeze = true`: Defines if the context properties are freeze. This option applies only for the child context.
 - `state = {}`: Default state for the current context.
 
