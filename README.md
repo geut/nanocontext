@@ -4,7 +4,7 @@
 [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 [![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
 
-> Small module to create a context tree object to extend through decorators.
+> Small module to create a stateful context tree object to extend through decorators.
 
 It provides a way to build a context object that you can share, extend and be sure that only the root can modify it.
 
