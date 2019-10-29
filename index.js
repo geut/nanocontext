@@ -31,11 +31,12 @@ class Nanocontext {
   constructor (ctx, opts = {}) {
     if (typeof ctx !== 'object') throw new NCTX_ERR_INVALID_CONTEXT_ARGUMENT(ctx)
 
-    const { onstatechange = () => {}, builtInMethods = true } = opts
+    const { onstatechange = () => {}, builtInMethods = true, freeze = false } = opts
 
     this.opts = opts
-    this.builtInMethods = builtInMethods
     this.onstatechange = onstatechange
+    this.builtInMethods = builtInMethods
+    this.freeze = freeze
     this.decorators = new Map()
     this.state = deepFreeze({}, 'state')
 
@@ -80,6 +81,10 @@ class Nanocontext {
   set (_, prop) {
     if (this.decorators.has(prop)) {
       throw new NCTX_ERR_INVALID_SETTER(`decorator.${prop}`)
+    }
+
+    if (this.freeze) {
+      throw new NCTX_ERR_INVALID_SETTER(`ctx.${prop}`)
     }
 
     return Reflect.set(...arguments)
