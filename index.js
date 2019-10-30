@@ -76,7 +76,7 @@ class Nanocontext {
      */
     this.root = null
 
-    /*
+    /**
      * Get the parent context.
      * @type {object}
      */
@@ -86,16 +86,16 @@ class Nanocontext {
     this.snapshot = this.snapshot.bind(this)
     this.setState = this.setState.bind(this)
 
-    this.target = new Proxy(ctx, this)
+    this._target = new Proxy(ctx, this)
 
     if (ctx[kIsNanocontext]) {
       this.root = ctx[kRoot]
       this.parent = ctx
     } else {
-      this.root = this.target
+      this.root = this._target
     }
 
-    return this.target
+    return this._target
   }
 
   get (_, prop) {
@@ -150,7 +150,7 @@ class Nanocontext {
     }
 
     if (typeof decorator === 'function') {
-      decorator.bind(this.target)
+      decorator.bind(this._target)
     }
 
     this._decorators.set(name, decorator)
@@ -177,10 +177,10 @@ class Nanocontext {
    * Generates a new context inherit from the current context.
    *
    * @param {NanocontextOptions} [opts] - Nanocontext options.
-   * @returns {State}
+   * @returns {Nanocontext}
    */
   snapshot (opts) {
-    return new Nanocontext(this.target, opts || this._opts)
+    return new Nanocontext(this._target, opts || this._opts)
   }
 }
 
