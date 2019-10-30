@@ -21,13 +21,6 @@ const kSnapshot = Symbol('nanocontext.snapshot')
 const kState = Symbol('nanocontext.state')
 const kSetState = Symbol('nanocontext.setstate')
 
-/**
- * deepFreeze
- *
- * @param {*} obj - Object to freeze.
- * @param {string} parent - The parent key where belongs to.
- * @returns {Proxy<obj>}
- */
 const deepFreeze = (obj, parent) => {
   if (!obj || typeof obj !== 'object') {
     return obj
@@ -159,7 +152,7 @@ class Nanocontext {
   }
 
   /**
-   * Set new a context state.
+   * Set a new a context state.
    * This state cannot be modify it directly, it always need to be modified through this method.
    *
    * @param {*} state - New state.
@@ -193,12 +186,53 @@ function nanocontext (ctx, opts) {
   return new Nanocontext(ctx, opts)
 }
 
-nanocontext.Nanocontext = Nanocontext
-nanocontext.getRoot = ctx => ctx[kRoot]
-nanocontext.getParent = ctx => ctx[kParent]
-nanocontext.decorate = (ctx, name, decorator) => ctx[kDecorate](name, decorator)
-nanocontext.getSnapshot = (ctx, opts = {}) => ctx[kSnapshot](opts)
-nanocontext.getState = ctx => ctx[kState]
-nanocontext.setState = (ctx, state, reason) => ctx[kSetState](state, reason)
+/**
+ * @param {Nanocontext} ctx
+ * @returns {Nanocontext}
+ */
+const getRoot = ctx => ctx[kRoot]
 
-module.exports = nanocontext
+/**
+ * @param {Nanocontext} ctx
+ * @returns {Nanocontext}
+ */
+const getParent = ctx => ctx[kParent]
+
+/**
+ * @param {Nanocontext} ctx
+ * @param {string} name
+ * @param {*} decorator
+ * @returns {Nanocontext}
+ */
+const decorate = (ctx, name, decorator) => ctx[kDecorate](name, decorator)
+
+/**
+ * @param {Nanocontext} ctx
+ * @param {NanocontextOptions} [opts]
+ * @returns {Nanocontext}
+ */
+const getSnapshot = (ctx, opts = {}) => ctx[kSnapshot](opts)
+
+/**
+ * @param {Nanocontext} ctx
+ * @returns {State}
+ */
+const getState = ctx => ctx[kState]
+
+/**
+ * @param {Nanocontext} ctx
+ * @param {*} state
+ * @param {string} [reason]
+ * @returns {State}
+ */
+const setState = (ctx, state, reason) => ctx[kSetState](state, reason)
+
+module.exports = Object.assign(nanocontext, {
+  Nanocontext,
+  getRoot,
+  getParent,
+  decorate,
+  getSnapshot,
+  getState,
+  setState
+})
