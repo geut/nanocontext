@@ -43,7 +43,7 @@ console.log(ctxChild.hello()) // hello from child
 
 ## API
 
-#### `const ctx = nanocontext(init, options)`
+#### `const ctx = nanocontext(initContext, options)`
 
 It creates a new nanocontext instance based on an initial object.
 
@@ -68,7 +68,7 @@ Alternative: `getParent(ctx)`
 
 #### `ctx.snapshot(options = {})`
 
-Return a new context inherit from `ctx`.
+Return a new context inherit from the current context (`ctx`).
 
 ```javascript
 const child = ctx.snapshot()
