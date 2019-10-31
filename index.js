@@ -6,6 +6,8 @@
  * @property {object} [state={}] - Default state for the current context.
  */
 
+const assert = require('nanocustomassert')
+
 const {
   NCTX_ERR_INVALID_SETTER,
   NCTX_ERR_INVALID_CONTEXT_ARGUMENT,
@@ -21,6 +23,10 @@ const kSnapshot = Symbol('nanocontext.snapshot')
 const kState = Symbol('nanocontext.state')
 const kSetState = Symbol('nanocontext.setstate')
 
+/**
+ * It protects each recursive property of an object of being changed.
+ * @private
+ */
 const deepFreeze = (obj, parent) => {
   if (!obj || typeof obj !== 'object') {
     return obj
@@ -46,22 +52,22 @@ class Nanocontext {
    * @param {NanocontextOptions} [opts] - Options.
    */
   constructor (ctx, opts = {}) {
-    if (typeof ctx !== 'object') throw new NCTX_ERR_INVALID_CONTEXT_ARGUMENT(ctx)
-
     const { onstatechange = () => {}, builtInMethods = true, freeze = true, state = {} } = opts
+
+    assert(typeof ctx === 'object', NCTX_ERR_INVALID_CONTEXT_ARGUMENT, ctx)
+    assert(!state || typeof state === 'object', NCTX_ERR_INVALID_STATE, state)
 
     this._opts = opts
     this._onstatechange = onstatechange
     this._builtInMethods = builtInMethods
     this._freeze = freeze
     this._decorators = new Map()
-    this._publicMethods = ['root', 'parent', 'state', 'decorate', 'snapshot', 'setState']
 
     /**
      * Context state.
      * @type {object}
      */
-    this.state = typeof state === 'object' ? deepFreeze(state, 'state') : new NCTX_ERR_INVALID_STATE(state)
+    this.state = state ? deepFreeze(state, 'state') : null
 
     /**
      * Get the root context.
@@ -104,7 +110,7 @@ class Nanocontext {
       case kSetState: return Reflect.get(this, 'setState')
     }
 
-    if (this._builtInMethods && this._publicMethods.includes(prop)) {
+    if (this._builtInMethods && Reflect.has(this, prop) && !prop.startsWith('_')) {
       return Reflect.get(this, prop)
     }
 
@@ -118,13 +124,18 @@ class Nanocontext {
   }
 
   set (_, prop) {
-    if (this._decorators.has(prop)) {
-      throw new NCTX_ERR_INVALID_SETTER(`decorator.${prop}`)
+    const message = `ctx.${prop}`
+
+    if (
+      this._decorators.has(prop) ||
+      (this._builtInMethods && Reflect.has(this, prop) && !prop.startsWith('_'))
+    ) {
+      throw new NCTX_ERR_INVALID_SETTER(message)
     }
 
-    // Only the root can modify the ctx directly.
-    if ((this._freeze && this.parent) || (this._builtInMethods && this._publicMethods.includes(prop))) {
-      throw new NCTX_ERR_INVALID_SETTER(`ctx.${prop.toString()}`)
+    // Only the root can modify the ctx directly (root === target).
+    if (this._freeze && this.root !== this._target) {
+      throw new NCTX_ERR_INVALID_SETTER(message)
     }
 
     return Reflect.set(...arguments)
@@ -138,12 +149,11 @@ class Nanocontext {
    * @returns {Nanocontext}
    */
   decorate (name, decorator) {
+    assert(typeof name === 'string', 'Name must be string.')
+    assert(decorator, 'Decorator is required.')
+
     if (this._decorators.has(name)) {
       throw new NCTX_ERR_DEC_ALREADY_PRESENT(name)
-    }
-
-    if (typeof decorator === 'function') {
-      decorator.bind(this._target)
     }
 
     this._decorators.set(name, decorator)
@@ -160,7 +170,8 @@ class Nanocontext {
    * @returns {State}
    */
   setState (state, reason) {
-    if (typeof state !== 'object') throw new NCTX_ERR_INVALID_STATE(state)
+    assert(typeof state === 'object', NCTX_ERR_INVALID_STATE, state)
+
     this.state = deepFreeze(Object.assign({}, this.state, state), 'state')
     this._onstatechange(this.state, reason)
     return this.state
@@ -179,6 +190,7 @@ class Nanocontext {
 
 /**
  * Creates a nanocontext.
+ * @default
  * @param {object} ctx Initial context.
  * @param {NanocontextOptions} [opts] Options.
  */

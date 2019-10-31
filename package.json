@@ -16,6 +16,7 @@
     "prepublishOnly": "npm test"
   },
   "dependencies": {
+    "nanocustomassert": "^1.0.0",
     "nanoerror": "^1.0.0"
   },
   "devDependencies": {

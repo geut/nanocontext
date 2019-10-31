@@ -34,7 +34,7 @@ describe('full context operations [builtInMethods]', () => {
     expect(ctxRoot.hello()).toBe('hello root')
     expect(ctxChild.hello()).toBe('hello child')
 
-    expect(() => ctxChild.decorate('hello', null)).toThrow(NCTX_ERR_DEC_ALREADY_PRESENT)
+    expect(() => ctxChild.decorate('hello', 'override')).toThrow(NCTX_ERR_DEC_ALREADY_PRESENT)
   })
 
   test('decorators objects', () => {
