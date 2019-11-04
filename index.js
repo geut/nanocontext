@@ -10,12 +10,14 @@ const assert = require('nanocustomassert')
 
 const {
   NCTX_ERR_INVALID_SETTER,
-  NCTX_ERR_INVALID_CONTEXT_ARGUMENT,
+  NCTX_ERR_INVALID_SOURCE_ARGUMENT,
+  NCTX_ERR_INVALID_OVERWRITE_CTX_PROP,
   NCTX_ERR_DEC_ALREADY_PRESENT,
   NCTX_ERR_INVALID_STATE
 } = require('./errors')
 
 const kIsNanocontext = Symbol('nanocontext.isnanocontext')
+const kSource = Symbol('nanocontext.source')
 const kRoot = Symbol('nanocontext.root')
 const kParent = Symbol('nanocontext.parent')
 const kDecorate = Symbol('nanocontext.decorate')
@@ -48,20 +50,19 @@ const deepFreeze = (obj, parent) => {
  */
 class Nanocontext {
   /**
-   * @param {object} ctx - Initial context.
+   * @param {object} source - Initial context.
    * @param {NanocontextOptions} [opts] - Options.
    */
-  constructor (ctx, opts = {}) {
+  constructor (source, opts = {}) {
     const { onstatechange = () => {}, builtInMethods = true, freeze = true, state = {} } = opts
 
-    assert(typeof ctx === 'object', NCTX_ERR_INVALID_CONTEXT_ARGUMENT, ctx)
+    assert(typeof source === 'object', NCTX_ERR_INVALID_SOURCE_ARGUMENT, source)
     assert(!state || typeof state === 'object', NCTX_ERR_INVALID_STATE, state)
 
     this._opts = opts
     this._onstatechange = onstatechange
     this._builtInMethods = builtInMethods
     this._freeze = freeze
-    this._decorators = new Map()
 
     /**
      * Context state.
@@ -81,17 +82,23 @@ class Nanocontext {
      */
     this.parent = null
 
+    this._decorators = new Map()
+
+    this._source = null
+
     this.decorate = this.decorate.bind(this)
     this.snapshot = this.snapshot.bind(this)
     this.setState = this.setState.bind(this)
 
-    this._target = new Proxy(ctx, this)
+    this._target = new Proxy(source, this)
 
-    if (ctx[kIsNanocontext]) {
-      this.root = ctx[kRoot]
-      this.parent = ctx
+    if (source[kIsNanocontext]) {
+      this.root = source[kRoot]
+      this.parent = source
     } else {
       this.root = this._target
+      // We store the source in a private prop of the root to validate operations.
+      this._source = source
     }
 
     return this._target
@@ -102,6 +109,7 @@ class Nanocontext {
 
     switch (prop) {
       case kIsNanocontext: return true
+      case kSource: return Reflect.get(this, '_source')
       case kRoot: return Reflect.get(this, 'root')
       case kParent: return Reflect.get(this, 'parent')
       case kDecorate: return Reflect.get(this, 'decorate')
@@ -142,7 +150,7 @@ class Nanocontext {
   }
 
   /**
-   * Secure decoration of a context without override the parent context.
+   * Secure decoration of a context without overwrite the parent context.
    *
    * @param {string} name - Decorator name.
    * @param {*} decorator - Any type to decorate the context.
@@ -154,6 +162,10 @@ class Nanocontext {
 
     if (this._decorators.has(name)) {
       throw new NCTX_ERR_DEC_ALREADY_PRESENT(name)
+    }
+
+    if (Reflect.has(this.root[kSource], name)) {
+      throw new NCTX_ERR_INVALID_OVERWRITE_CTX_PROP(name)
     }
 
     this._decorators.set(name, decorator)

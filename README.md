@@ -78,7 +78,7 @@ Alternative: `getSnapshot(ctx)`
 
 #### `ctx.decorate(name, any) -> ctx`
 
-Secure decoration of a context without override the parent context.
+Secure decoration of a context without overwrite the parent context.
 
 ```javascript
 ctx.decorate('name', 'alice')

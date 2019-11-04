@@ -2,7 +2,7 @@ const nanocontext = require('..')
 
 const { getRoot, getParent, getState, setState, decorate, getSnapshot } = nanocontext
 
-const { NCTX_ERR_DEC_ALREADY_PRESENT, NCTX_ERR_INVALID_SETTER } = require('../errors')
+const { NCTX_ERR_DEC_ALREADY_PRESENT, NCTX_ERR_INVALID_SETTER, NCTX_ERR_INVALID_OVERWRITE_CTX_PROP } = require('../errors')
 
 describe('full context operations [builtInMethods]', () => {
   const ctx = { name: 'alice', age: () => 25 }
@@ -34,7 +34,8 @@ describe('full context operations [builtInMethods]', () => {
     expect(ctxRoot.hello()).toBe('hello root')
     expect(ctxChild.hello()).toBe('hello child')
 
-    expect(() => ctxChild.decorate('hello', 'override')).toThrow(NCTX_ERR_DEC_ALREADY_PRESENT)
+    expect(() => ctxChild.decorate('age', 'overwrite')).toThrow(NCTX_ERR_INVALID_OVERWRITE_CTX_PROP)
+    expect(() => ctxChild.decorate('hello', 'overwrite')).toThrow(NCTX_ERR_DEC_ALREADY_PRESENT)
   })
 
   test('decorators objects', () => {
