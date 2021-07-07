@@ -1,119 +1,62 @@
-const nanocontext = require('..')
+import { test } from 'uvu'
+import * as assert from 'uvu/assert'
 
-const { getRoot, getParent, getState, setState, decorate, getSnapshot } = nanocontext
+import { nanocontext, getRoot, getParent, getClone } from '../src/index.js'
 
-const { NCTX_ERR_DEC_ALREADY_PRESENT, NCTX_ERR_INVALID_SETTER, NCTX_ERR_INVALID_OVERWRITE_CTX_PROP } = require('../errors')
+const source = { name: 'alice', age: () => 25 }
+let ctxRoot = null
+let ctxChild = null
 
-describe('full context operations [builtInMethods]', () => {
-  const ctx = { name: 'alice', age: () => 25 }
-  let ctxRoot, ctxChild
-
-  test('ctxRoot creation, should be equal as original ctx', () => {
-    ctxRoot = nanocontext(ctx)
-    expect(ctxRoot).toEqual(ctx)
-    expect(ctxRoot.name).toBe('alice')
-    expect(ctxRoot.age()).toBe(25)
-    expect(ctxRoot.root).toBe(ctxRoot)
-  })
-
-  test('snapshot, ctxChild creation from ctxRoot', () => {
-    ctxChild = ctxRoot.snapshot()
-    expect(ctxChild).toEqual(ctx)
-    expect(ctxChild.name).toBe('alice')
-    expect(ctxChild.age()).toBe(25)
-    expect(ctxChild.root).toBe(ctxRoot)
-    expect(ctxChild.parent).toBe(ctxRoot)
-  })
-
-  test('decorators functions', () => {
-    ctxRoot.decorate('hello', () => 'hello root')
-    expect(ctxRoot.hello()).toBe('hello root')
-    expect(ctxChild.hello()).toBe('hello root')
-
-    ctxChild.decorate('hello', () => 'hello child')
-    expect(ctxRoot.hello()).toBe('hello root')
-    expect(ctxChild.hello()).toBe('hello child')
-
-    expect(() => ctxChild.decorate('age', 'overwrite')).toThrow(NCTX_ERR_INVALID_OVERWRITE_CTX_PROP)
-    expect(() => ctxChild.decorate('hello', 'overwrite')).toThrow(NCTX_ERR_DEC_ALREADY_PRESENT)
-  })
-
-  test('decorators objects', () => {
-    ctxRoot.decorate('bro', { name: 'bob' })
-    expect(ctxRoot.bro.name).toBe('bob')
-    expect(ctxChild.bro.name).toBe('bob')
-
-    ctxChild.decorate('bro', { name: 'charlie' })
-    expect(ctxRoot.bro.name).toBe('bob')
-    expect(ctxChild.bro.name).toBe('charlie')
-
-    expect(() => {
-      ctxChild.bro = 'modified'
-    }).toThrow(NCTX_ERR_INVALID_SETTER)
-  })
-
-  test('state', () => {
-    const newState = { happy: true, bro: { name: 'bob' } }
-    ctxRoot.setState(newState)
-    expect(ctxRoot.state).toEqual(newState)
-    expect(ctxChild.state).toEqual({})
-
-    expect(() => {
-      ctxRoot.state.bro = 'modified'
-    }).toThrow(NCTX_ERR_INVALID_SETTER)
-    expect(() => {
-      ctxRoot.state.bro.name = 'modified'
-    }).toThrow(NCTX_ERR_INVALID_SETTER)
-  })
-
-  test('access [freeze=true]', () => {
-    const human = { name: 'bob', change () { this.name = 'change' } }
-    ctxRoot.human = human
-    ctxRoot.human.change()
-    ctxRoot.human.name = 'alice'
-    expect(ctxRoot.human).toEqual(human)
-    expect(() => {
-      ctxChild.human = 'modified2'
-    }).toThrow(NCTX_ERR_INVALID_SETTER)
-    expect(() => {
-      ctxChild.human.change()
-    }).toThrow(NCTX_ERR_INVALID_SETTER)
-    expect(() => {
-      ctxChild.human.name = 'modified2'
-    }).toThrow(NCTX_ERR_INVALID_SETTER)
-  })
+test('ctxRoot creation, should be equal as original ctx', () => {
+  ctxRoot = nanocontext(source)
+  assert.equal(ctxRoot, source)
+  assert.is(ctxRoot.name, 'alice')
+  assert.is(ctxRoot.age(), 25)
+  assert.is(ctxRoot.root, ctxRoot)
 })
 
-describe('public functions [builtInMethods = false]', () => {
-  const ctx = { name: 'alice', age: () => 25 }
-  let ctxRoot, ctxChild
-
-  test('getRoot', () => {
-    ctxRoot = nanocontext(ctx, { builtInMethods: false })
-    expect(getRoot(ctxRoot)).toBe(ctxRoot)
-  })
-
-  test('snapshot', () => {
-    ctxChild = getSnapshot(ctxRoot)
-    expect(ctxChild).toEqual(ctx)
-    expect(getRoot(ctxChild)).toBe(ctxRoot)
-    expect(getParent(ctxChild)).toBe(ctxRoot)
-  })
-
-  test('decorators', () => {
-    decorate(ctxRoot, 'hello', () => 'hello root')
-    expect(ctxRoot.hello()).toBe('hello root')
-    expect(ctxChild.hello()).toBe('hello root')
-
-    decorate(ctxChild, 'hello', () => 'hello child')
-    expect(ctxRoot.hello()).toBe('hello root')
-    expect(ctxChild.hello()).toBe('hello child')
-  })
-
-  test('state', () => {
-    const newState = { happy: true, bro: { name: 'bob' } }
-    setState(ctxRoot, newState)
-    expect(getState(ctxRoot)).toEqual(newState)
-    expect(getState(ctxChild)).toEqual({})
-  })
+test('snapshot, ctxChild creation from ctxRoot', () => {
+  ctxChild = ctxRoot.clone()
+  assert.equal(ctxChild, source)
+  assert.is(ctxChild.name, 'alice')
+  assert.is(ctxChild.age(), 25)
+  assert.is(ctxChild.root, ctxRoot)
+  assert.is(ctxChild.parent, ctxRoot)
 })
+
+test('set props and functions', () => {
+  ctxRoot.hello = () => 'hello root'
+  assert.is(ctxRoot.hello(), 'hello root')
+  assert.is(ctxChild.hello(), 'hello root')
+
+  ctxChild.hello = () => 'hello child'
+  assert.is(ctxRoot.hello(), 'hello root')
+  assert.is(ctxChild.hello(), 'hello child')
+})
+
+test('merge two context', () => {
+  const ctx1 = nanocontext({
+    name: 'bob'
+  })
+
+  const ctx2 = nanocontext({
+    age: 4
+  }, { parent: ctx1 })
+
+  assert.is(ctx2.name, 'bob')
+  assert.is(ctx2.age, 4)
+  assert.is(ctx2.parent, ctx1)
+  assert.is(ctx2.root, ctx1)
+})
+
+test('public functions [builtInMethods = false]', () => {
+  const ctxRoot = nanocontext(source, { builtInMethods: false })
+  assert.is(getRoot(ctxRoot), ctxRoot)
+
+  const ctxChild = getClone(ctxRoot)
+  assert.equal(ctxChild, source)
+  assert.is(getRoot(ctxChild), ctxRoot)
+  assert.is(getParent(ctxChild), ctxRoot)
+})
+
+test.run()

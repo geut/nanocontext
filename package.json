@@ -2,37 +2,34 @@
   "name": "nanocontext",
   "version": "1.0.2",
   "description": "Small module to create a stateful context tree object to extend through decorators.",
-  "main": "index.js",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
   "files": [
-    "errors.js",
-    "index.js"
+    "src"
   ],
   "scripts": {
     "start": "node index.js",
-    "test": "jest --passWithNoTests",
+    "test": "uvu",
     "posttest": "npm run lint",
-    "lint": "xd-ns \"**/*.js\"",
+    "lint": "standard",
     "version": "chan release --allow-yanked ${npm_package_version} && git add .",
     "prepublishOnly": "npm test"
   },
   "dependencies": {
-    "nanocustomassert": "^1.0.0",
-    "nanoerror": "^1.0.0"
+    "nanocustomassert": "^1.0.0"
   },
   "devDependencies": {
-    "@geut/chan": "^2.0.0",
-    "@geut/xd": "^1.5.0",
-    "standard": "^14.3.1",
-    "jest": "^24.8.0"
-  },
-  "jest": {
-    "testMatch": [
-      "**/tests/**/*.test.js"
-    ]
+    "@geut/chan": "^3.0.3",
+    "standard": "^16.0.3",
+    "uvu": "^0.5.1"
   },
   "standard": {
     "env": [
-      "jest",
       "node",
       "browser"
     ]
