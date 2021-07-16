@@ -4,11 +4,9 @@ import * as assert from 'uvu/assert'
 import { nanocontext, getRoot, getParent, getClone } from '../src/index.js'
 
 const source = { name: 'alice', age: () => 25 }
-let ctxRoot = null
-let ctxChild = null
 
 test('ctxRoot creation, should be equal as original ctx', () => {
-  ctxRoot = nanocontext(source)
+  const ctxRoot = nanocontext(source)
   assert.equal(ctxRoot, source)
   assert.is(ctxRoot.name, 'alice')
   assert.is(ctxRoot.age(), 25)
@@ -16,7 +14,8 @@ test('ctxRoot creation, should be equal as original ctx', () => {
 })
 
 test('snapshot, ctxChild creation from ctxRoot', () => {
-  ctxChild = ctxRoot.clone()
+  const ctxRoot = nanocontext(source)
+  const ctxChild = ctxRoot.clone()
   assert.equal(ctxChild, source)
   assert.is(ctxChild.name, 'alice')
   assert.is(ctxChild.age(), 25)
@@ -25,6 +24,8 @@ test('snapshot, ctxChild creation from ctxRoot', () => {
 })
 
 test('set props and functions', () => {
+  const ctxRoot = nanocontext(source)
+  const ctxChild = ctxRoot.clone()
   ctxRoot.hello = () => 'hello root'
   assert.is(ctxRoot.hello(), 'hello root')
   assert.is(ctxChild.hello(), 'hello root')
@@ -57,6 +58,30 @@ test('public functions [builtInMethods = false]', () => {
   assert.equal(ctxChild, source)
   assert.is(getRoot(ctxChild), ctxRoot)
   assert.is(getParent(ctxChild), ctxRoot)
+})
+
+test('ctxChild cannot change inner objects of ctxRoot', () => {
+  const ctxRoot = nanocontext({
+    inner: {
+      value: 0
+    },
+    arr: [0, 1, { value: 0 }]
+  })
+
+  const ctxChild = ctxRoot.clone()
+
+  assert.throws(() => {
+    ctxChild.inner.value = 1
+  })
+
+  assert.throws(() => {
+    ctxChild.arr.push('')
+  })
+
+  assert.throws(() => {
+    const inner = ctxChild.arr[2]
+    inner.value = 1
+  })
 })
 
 test.run()

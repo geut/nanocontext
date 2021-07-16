@@ -7,6 +7,19 @@ const kClone = Symbol('nanocontext.clone')
 
 const builtin = ['root', 'parent', 'clone']
 
+const freeze = target => new Proxy(target, {
+  get (target, prop) {
+    if (Reflect.has(target, prop)) {
+      const result = Reflect.get(target, prop)
+      if (typeof result === 'object') return freeze(result)
+      return result
+    }
+  },
+  getOwnPropertyDescriptor (target, prop) {
+    return { ...Reflect.getOwnPropertyDescriptor(target, prop), writable: false }
+  }
+})
+
 export function nanocontext (source, opts = {}) {
   let { parent, builtInMethods = true } = opts
 
@@ -43,8 +56,10 @@ export function nanocontext (source, opts = {}) {
         return Reflect.get(target, prop)
       }
 
-      if (parent) {
-        return Reflect.get(parent, prop)
+      if (parent && Reflect.has(parent, prop)) {
+        const result = Reflect.get(parent, prop)
+        if (typeof result === 'object') return freeze(result)
+        return result
       }
     },
 
