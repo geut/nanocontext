@@ -1,6 +1,6 @@
 {
   "name": "nanocontext",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "Small module to create a stateful context tree object to extend through decorators.",
   "type": "module",
   "exports": {

@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## 2.1.0 - 2021-07-16 [YANKED]
+
 ## 2.0.1 - 2021-07-07 [YANKED]
 
 ## [2.0.0] - 2021-07-07
@@ -16,5 +18,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - decorator management
 - state management
 
-[Unreleased]: https://github.com/geut/nanocontext/compare/v2.0.1...HEAD
+[Unreleased]: https://github.com/geut/nanocontext/compare/v2.1.0...HEAD
 [2.0.0]: https://github.com/geut/nanocontext/releases/tags/v2.0.0
